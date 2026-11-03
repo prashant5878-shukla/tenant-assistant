@@ -41,3 +41,6 @@ aside h2 { font-size:15px; }
 .results th, .results td { text-align:left; padding:4px 6px; border-bottom:1px solid var(--line); word-break:break-all; }
 .results tr.running td { color:var(--accent); }
 .results tr.failed td { color:#dc2626; } .results tr.skipped td { color:var(--muted); }
+.docs .actions { margin-top:4px; display:flex; gap:6px; }
+.docs .actions button { font-size:12px; padding:2px 8px; border:1px solid var(--line); background:var(--card); color:var(--fg); border-radius:6px; cursor:pointer; }
+.docs .actions button.danger { background:#dc2626; border-color:#dc2626; color:#fff; }
