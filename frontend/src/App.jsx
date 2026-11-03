@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { api } from './services/api.js';
 import TenantSelect from './components/TenantSelect.jsx';
 import AskForm from './components/AskForm.jsx';
-import AnswerCard from './components/AnswerCard.jsx';
+import AnswerCard, { AnswerSkeleton } from './components/AnswerCard.jsx';
+import { SparkIcon } from './components/icons.jsx';
 import DocumentList from './components/DocumentList.jsx';
 import UploadPanel from './components/UploadPanel.jsx';
 
@@ -40,30 +41,40 @@ export default function App() {
   }
 
   return (
-    <div className="layout">
-      <header>
-        <h1>LeadLane Product Assistant</h1>
+    <div className="shell">
+      <header className="topbar">
+        <div className="brand">
+          <span className="brand-mark"><SparkIcon /></span>
+          <span>LeadLane<small>Product assistant</small></span>
+        </div>
+        <nav className="segmented" aria-label="View">
+          <button className={tab === 'ask' ? 'on' : ''} onClick={() => setTab('ask')}>Ask</button>
+          <button className={tab === 'docs' ? 'on' : ''} onClick={() => setTab('docs')}>Documents</button>
+        </nav>
         <TenantSelect tenants={tenants} value={tenant} onChange={onTenantChange} />
       </header>
-      <nav className="tabs">
-        <button className={tab === 'ask' ? 'on' : ''} onClick={() => setTab('ask')}>Ask</button>
-        <button className={tab === 'docs' ? 'on' : ''} onClick={() => setTab('docs')}>Documents</button>
-      </nav>
+
       {tab === 'docs' ? (
-        <main>
-          <section><UploadPanel tenants={tenants} defaultTenant={tenant} onUploaded={onUploaded} /></section>
-          <aside><DocumentList tenant={tenant} version={docsVersion} editable onChanged={() => setDocsVersion((v) => v + 1)} /></aside>
-        </main>
+        <div className="grid">
+          <UploadPanel tenants={tenants} defaultTenant={tenant} onUploaded={onUploaded} />
+          <DocumentList tenant={tenant} version={docsVersion} editable onChanged={() => setDocsVersion((v) => v + 1)} />
+        </div>
       ) : (
-      <main>
-        <section className="chat">
-          <AskForm disabled={!tenant || loading} loading={loading} onAsk={onAsk} />
-          {error && <p className="error">{error}</p>}
-          {history.map((r, i) => <AnswerCard key={history.length - i} result={r} />)}
-          {!history.length && !loading && <p className="muted">Ask a question about {tenant || 'a client'}&apos;s product documents.</p>}
-        </section>
-        <aside><DocumentList tenant={tenant} version={docsVersion} /></aside>
-      </main>
+        <div className="grid">
+          <section>
+            <div className="hero">
+              <h2>Ask anything about {tenant || 'your client'}</h2>
+              <p>Answers come only from the client&apos;s documents, with sources.</p>
+            </div>
+            <AskForm tenant={tenant} disabled={!tenant || loading} loading={loading} onAsk={onAsk} />
+            {error && <p className="error">{error}</p>}
+            <div className="answers">
+              {loading && <AnswerSkeleton />}
+              {history.map((r, i) => <AnswerCard key={history.length - i} result={r} />)}
+            </div>
+          </section>
+          <DocumentList tenant={tenant} version={docsVersion} />
+        </div>
       )}
     </div>
   );
