@@ -52,7 +52,7 @@ export default function App() {
       {tab === 'docs' ? (
         <main>
           <section><UploadPanel tenants={tenants} defaultTenant={tenant} onUploaded={onUploaded} /></section>
-          <aside><DocumentList tenant={tenant} version={docsVersion} /></aside>
+          <aside><DocumentList tenant={tenant} version={docsVersion} editable onChanged={() => setDocsVersion((v) => v + 1)} /></aside>
         </main>
       ) : (
       <main>
