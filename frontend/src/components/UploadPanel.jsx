@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../services/api.js';
 import { useJobProgress } from '../hooks/useJobProgress.js';
+import { UploadIcon } from './icons.jsx';
 
 const NEW = '__new__';
 const ID_RE = /^[a-z0-9][a-z0-9_-]{1,40}$/;
@@ -12,6 +13,7 @@ export default function UploadPanel({ tenants, defaultTenant, onUploaded }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [jobId, setJobId] = useState(null);
+  const [over, setOver] = useState(false);
   const input = useRef();
 
   const job = useJobProgress(jobId, () => {
@@ -44,47 +46,51 @@ export default function UploadPanel({ tenants, defaultTenant, onUploaded }) {
   }
 
   return (
-    <form onSubmit={submit} className="upload">
+    <form onSubmit={submit} className="panel upload">
       <h2>Add documents</h2>
-      <label>Client
+      <label className="field">Client
         <select value={choice} onChange={(e) => setChoice(e.target.value)}>
           {tenants.map((t) => <option key={t} value={t}>{t}</option>)}
           <option value={NEW}>+ New client…</option>
         </select>
       </label>
       {choice === NEW && (
-        <label>New client id
+        <label className="field">New client id
           <input value={newId} onChange={(e) => setNewId(e.target.value)} placeholder="e.g. acme" />
-          {newId && !ID_RE.test(newId.trim().toLowerCase()) && <small className="error">Lowercase letters, digits, - or _ (2-41 chars)</small>}
+          {newId && !ID_RE.test(newId.trim().toLowerCase()) && <span className="error">Lowercase letters, digits, - or _ (2-41 chars)</span>}
         </label>
       )}
-      <div className="drop" onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); pick(e.dataTransfer.files); }}>
-        <p>Drag PDFs here or</p>
-        <input ref={input} type="file" accept="application/pdf" multiple onChange={(e) => pick(e.target.files)} />
-        {files.length > 0 && <ul>{files.map((f) => <li key={f.name}>{f.name} <span className="muted">({Math.round(f.size / 1024)} KB)</span></li>)}</ul>}
+      <div
+        className={`drop ${over ? 'over' : ''}`}
+        onDragOver={(e) => { e.preventDefault(); setOver(true); }}
+        onDragLeave={() => setOver(false)}
+        onDrop={(e) => { e.preventDefault(); setOver(false); pick(e.dataTransfer.files); }}
+      >
+        <UploadIcon />
+        <p><strong>Drop PDFs here</strong> or <button type="button" className="browse" onClick={() => input.current?.click()}>browse</button></p>
+        <input ref={input} type="file" accept="application/pdf" multiple hidden onChange={(e) => pick(e.target.files)} />
+        {files.length > 0 && (
+          <ul className="filelist">{files.map((f) => <li key={f.name}><span>{f.name}</span><span className="muted">{Math.round(f.size / 1024)} KB</span></li>)}</ul>
+        )}
       </div>
-      <p className="muted">Files are added to <strong>{tenant || '…'}</strong> only. A newer revision of an existing document supersedes the older one; unchanged files are skipped. Scans are OCR&apos;d (takes a moment).</p>
-      <button disabled={!valid || busy}>{busy ? 'Ingesting…' : `Upload ${files.length || ''} file(s)`}</button>
+      <p className="muted">Added to <strong>{tenant || '…'}</strong> only. A newer revision supersedes the older one; unchanged files are skipped; scans are OCR&apos;d.</p>
+      <button className="primary" disabled={!valid || busy}>{busy ? <><span className="spinner" />Ingesting…</> : `Upload ${files.length || ''} file${files.length === 1 ? '' : 's'}`}</button>
       {error && <p className="error">{error}</p>}
       {job && (
-        <div>
-          <p className="muted">Job {job.status === 'running' ? 'running…' : job.status}{job.error ? `: ${job.error}` : ''}</p>
-          <table className="results">
-            <thead><tr><th>File</th><th>Status</th><th>Pages</th><th>Notes</th></tr></thead>
-            <tbody>
-              {job.files.map((f) => {
-                const r = f.result ?? {};
-                return (
-                  <tr key={f.name} className={f.status}>
-                    <td>{f.name}</td>
-                    <td>{f.status === 'running' ? `${f.stage ?? 'starting'}…` : f.status}</td>
-                    <td>{r.pages ?? ''}</td>
-                    <td>{[r.error, r.ocrPages?.length && `OCR p${r.ocrPages}`, r.noTextPages?.length && `no text layer p${r.noTextPages}`].filter(Boolean).join('; ')}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div className="job">
+          <div className="job-head"><span>Ingestion</span><span>{job.status === 'running' ? 'running…' : job.status}</span></div>
+          {job.error && <div className="job-row"><span className="error">{job.error}</span></div>}
+          {job.files.map((f) => {
+            const r = f.result ?? {};
+            const note = [r.error, r.ocrPages?.length && `OCR on page ${r.ocrPages}`, r.noTextPages?.length && `no text layer on page ${r.noTextPages}`].filter(Boolean).join(' · ');
+            return (
+              <div key={f.name} className="job-row">
+                <span className="fname">{f.name}</span>
+                <span className={`state ${f.status}`}>{f.status === 'running' ? <><span className="spinner" />{f.stage ?? 'starting'}</> : f.status}</span>
+                {note && <span className="note">{note}</span>}
+              </div>
+            );
+          })}
         </div>
       )}
     </form>
