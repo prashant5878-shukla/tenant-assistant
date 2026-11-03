@@ -16,6 +16,9 @@ export class DocumentsRepository {
   async setStatus(tenant, id, status, supersededBy = null) {
     return DocumentModel.updateOne(tenantFilter(tenant, { _id: id }), { status, supersededBy });
   }
+  async deleteByFile(tenant, fileName) {
+    return DocumentModel.findOneAndDelete(tenantFilter(tenant, { fileName })).lean();
+  }
   async tenants() {
     return DocumentModel.distinct('tenant');
   }
@@ -30,6 +33,9 @@ export class ChunksRepository {
   }
   async setStatusForDocument(tenant, docId, status) {
     return ChunkModel.updateMany(tenantFilter(tenant, { docId }), { status });
+  }
+  async deleteForDocument(tenant, docId) {
+    return ChunkModel.deleteMany(tenantFilter(tenant, { docId }));
   }
   async count(tenant) {
     return ChunkModel.countDocuments(tenantFilter(tenant));
