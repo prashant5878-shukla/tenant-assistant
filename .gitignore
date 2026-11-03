@@ -1,0 +1,25 @@
+# secrets – never commit
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# dependencies / build output
+node_modules/
+dist/
+coverage/
+
+# runtime data
+backend/data/*
+!backend/data/.gitkeep
+*.log
+
+# confidential assignment material (PDFs, questions) – keep local
+resource/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
