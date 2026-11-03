@@ -91,3 +91,26 @@ describe('tenant isolation', () => {
     }
   });
 });
+
+describe('document delete', () => {
+  it('removes only that tenant\'s document, even when the file name exists in both tenants', async () => {
+    const { documentService } = await import('../src/services/documentService.js');
+    const before = await chunksRepo.count('nordhaven');
+    const r = await documentService.delete({ tenant: 'alvery', fileName: 'Price_List_2026.pdf' });
+    expect(r.deleted).toBe(true);
+    expect(await chunksRepo.count('nordhaven')).toBe(before);
+    expect(await documentsRepo.findByFile('nordhaven', 'Price_List_2026.pdf')).not.toBeNull();
+    expect(await documentsRepo.findByFile('alvery', 'Price_List_2026.pdf')).toBeNull();
+  });
+
+  it('restores the previous revision as current when the newest one is deleted', async () => {
+    const old = await documentsRepo.findByFile('alvery', 'Price_List_2025.pdf');
+    expect(old.status).toBe('current'); // 2026 list is gone, so 2025 is the newest again
+  });
+
+  it('is a no-op for unknown files and rejects bad tenants', async () => {
+    const { documentService } = await import('../src/services/documentService.js');
+    expect((await documentService.delete({ tenant: 'alvery', fileName: 'nope.pdf' })).deleted).toBe(false);
+    await expect(documentService.delete({ tenant: '$ne', fileName: 'x.pdf' })).rejects.toThrow(/tenant/i);
+  });
+});
