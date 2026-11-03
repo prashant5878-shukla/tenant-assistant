@@ -8,6 +8,7 @@ import { assertTenant } from '../db/tenantGuard.js';
 import { ensureIndexes } from '../db/connection.js';
 import { IngestionPipeline } from '../ingestion/pipeline.js';
 import { jobManager } from '../services/jobManager.js';
+import { documentService } from '../services/documentService.js';
 import { config } from '../config/index.js';
 import { connectDb } from '../db/connection.js';
 import { askService } from '../services/askService.js';
@@ -21,6 +22,7 @@ export class ApiServer {
   constructor({ ask = askService, documents = documentsRepo, pipeline = new IngestionPipeline() } = {}) {
     this.pipeline = pipeline;
     this.jobs = jobManager;
+    this.documentService = documentService;
     this.ask = ask;
     this.documents = documents;
     this.app = express();
@@ -77,6 +79,20 @@ export class ApiServer {
           this.jobs.finish(job, { error: err.message });
         });
       res.status(202).json({ jobId: job.id, tenant, files: job.files.map((f) => f.name) });
+    }));
+
+    // Delete one document of one tenant (to replace it with a corrected version, upload afterwards).
+    this.app.delete('/api/documents', wrap(async (req, res) => {
+      let tenant;
+      try {
+        tenant = assertTenant(String(req.query.tenant ?? ''));
+      } catch {
+        return res.status(400).json({ error: 'Invalid client id' });
+      }
+      const file = String(req.query.file ?? '');
+      if (!file) return res.status(400).json({ error: 'file is required' });
+      const result = await this.documentService.delete({ tenant, fileName: file });
+      res.status(result.deleted ? 200 : 404).json(result.deleted ? result : { error: 'Document not found' });
     }));
 
     // Polling endpoint: current snapshot of a job.
