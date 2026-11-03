@@ -15,5 +15,7 @@ export const api = {
     files.forEach((f) => fd.append('files', f));
     return request('/api/documents', { method: 'POST', body: fd });
   },
+  deleteDocument: (tenant, file) =>
+    request(`/api/documents?tenant=${encodeURIComponent(tenant)}&file=${encodeURIComponent(file)}`, { method: 'DELETE' }),
   ask: (tenant, question) => request('/api/ask', { method: 'POST', body: JSON.stringify({ tenant, question }) }),
 };
