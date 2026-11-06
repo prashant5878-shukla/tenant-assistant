@@ -34,6 +34,7 @@ export class MetadataDetector {
     if ((m = text.match(/Revision\s+(\d{4}-\d{2})/i))) return { effectiveDate: m[1], revision: m[1] };
     if ((m = text.match(/Valid from\s+(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})/i)) && month(m[2])) return { effectiveDate: `${m[3]}-${month(m[2])}-${m[1].padStart(2, '0')}` };
     if ((m = text.match(/Issue date:\s*(\d{4}-\d{2})/i))) return { effectiveDate: m[1] };
+    if ((m = text.match(/Issue date:\s*(\d{1,2})\.(\d{1,2})\.(\d{4})/i))) return { effectiveDate: `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` };
     if ((m = text.match(/Status:\s*([A-Za-z]+)\s+(\d{4})/i)) && month(m[1])) return { effectiveDate: `${m[2]}-${month(m[1])}` };
     if ((m = text.match(/Product News\s*[–-]\s*([A-Za-z]+)\s+(\d{4})/i)) && month(m[1])) return { effectiveDate: `${m[2]}-${month(m[1])}` };
     if ((m = fileName.match(/(\d{4})-(\d{2})/))) return { effectiveDate: `${m[1]}-${m[2]}` };

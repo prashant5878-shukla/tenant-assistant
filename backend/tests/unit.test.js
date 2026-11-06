@@ -14,6 +14,9 @@ describe('MetadataDetector', () => {
   it('keeps spring-force sheets out of the datasheet family', () => {
     expect(md.familyKey('datasheet', 'ALVERY-44.0672_AutoForm 67_Spring_Force.pdf')).toBe('springforce:44.0672');
   });
+  it('parses day.month.year issue dates', () => {
+    expect(md.dates('Issue date: 15.11.2019', 'x.pdf').effectiveDate).toBe('2019-11-15');
+  });
   it('detects price list validity', () => {
     expect(md.dates('Valid from 1 January 2025 to 31 December 2025', 'Price_List_2025.pdf').effectiveDate).toBe('2025-01-01');
   });

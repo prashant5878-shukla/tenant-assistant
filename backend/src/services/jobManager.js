@@ -4,7 +4,7 @@ import { EventEmitter } from 'node:events';
 /**
  * In-memory ingestion jobs with an event log. Each job keeps its full event history so a client that
  * connects late (or reconnects) can replay it; GET /jobs/:id gives the same state for plain polling.
- * Single-process only – a production setup would back this with a queue/Redis (see Part B design note).
+ * Single-process only – a production setup would back this with a queue/Redis (see docs/suggestion.md).
  */
 export class JobManager {
   static MAX_JOBS = 100;

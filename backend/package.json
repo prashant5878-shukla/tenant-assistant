@@ -9,7 +9,8 @@
     "cli": "node src/cli/index.js",
     "ingest:all": "node scripts/ingest-all.js",
     "eval": "node src/cli/index.js eval",
-    "ask": "node src/cli/index.js ask"
+    "ask": "node src/cli/index.js ask",
+    "leadlane": "node src/cli/index.js"
   },
   "keywords": [],
   "author": "",
@@ -34,5 +35,8 @@
   },
   "devDependencies": {
     "vitest": "^5.1.0"
+  },
+  "bin": {
+    "leadlane": "src/cli/index.js"
   }
 }

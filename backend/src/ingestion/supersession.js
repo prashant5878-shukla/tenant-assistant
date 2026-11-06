@@ -5,7 +5,7 @@ const log = getLogger('supersession');
 
 /**
  * Within one familyKey the doc with the newest effectiveDate stays "current"; older ones become
- * "superseded". Runs per tenant after every ingest (also the hook Part B's incremental ingest uses).
+ * "superseded". Runs per tenant after every ingest (also used by uploads and deletes, so a newer revision supersedes the older one).
  */
 export class SupersessionService {
   constructor({ documents = documentsRepo, chunks = chunksRepo } = {}) {
